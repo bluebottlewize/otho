@@ -1,14 +1,13 @@
-### My first repository is awesome!
+# Installation
 
-I'm [PSEUDO/NAME] and here it's my first GitHub repository.
-If you see this file on my project, it's because I'm learning Git.
+`wget https://github.com/bluebottlewize/otho/blob/main/otho.sh`
 
-My mood:
+`chmod u+x otho.sh`
 
-> [MOOD NAME]
+# Usage
 
-My favorite color:
+`$ ./otho.sh ac.c wa.c -t testcase.c`
 
-> [COLOR NAME]
+`$ ./otho.sh ac.c wa.c -t testcase.c -T 2`
 
-Thank you so much for reading! ☺
+`$ ./otho.sh ac.c wa.c -i input.txt`
