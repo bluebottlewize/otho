@@ -11,6 +11,7 @@
 
 ```
 $ wget https://github.com/bluebottlewize/otho/blob/main/otho.sh
+$ wget https://github.com/bluebottlewize/otho/blob/main/lexer
 ```
 
 ```
