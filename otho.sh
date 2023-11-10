@@ -46,12 +46,17 @@ run()
 
     input=$2
 
+    name=$( getfilename $file )
     ext=$( getextension $file )
 
-    if [[ $ext == "out" ]]; then
-	echo -e "$( echo -e "$input" 2>&1 | ./$file /dev/stdin )"
+    if [[ $ext == "c" ]]; then
+	echo -e "$( echo -e "$input" 2>&1 | ./$name.out /dev/stdin )"
+    elif [[ $ext == "cpp" ]]; then
+	echo -e "$( echo -e "$input" 2>&1 | ./$name.out /dev/stdin )"
     elif [[ $ext == "py" ]]; then
 	echo $( python3 $file)
+    elif [[ $ext == "tc" ]];then
+	echo -e "$( ./lexer < $file )"
     fi
 }
 
@@ -71,16 +76,19 @@ outputfile=""
 input=""
 timeout=1
 tc=""
-wacases=1
+totalcases=10000
+totalcasescounter=0
+wacases=25
 wacasescounter=0
 passed=0
+cores=25
 
 ac=$1
 wa=$2
 
 shift 2
 
-while getopts ":ht:i:T:o:w:p" option; do
+while getopts ":ht:i:T:o:w:pc:x:" option; do
     case $option in
 	h)
 	    Help
@@ -117,6 +125,11 @@ while getopts ":ht:i:T:o:w:p" option; do
 	    wacases=$OPTARG;;
 	p)
 	    passed=1;;
+	c)
+	    totalcases=$OPTARG;;
+	x)
+	    cores=$OPTARG;;
+	    
 	\?)
 	    echo "Invalid Option"
 	    Help
@@ -131,15 +144,21 @@ fi
 
 i=0
 
-compile $ac
-compile $wa
-compile $tc
+(( totalcases=totalcases/cores ))
+(( wacases=wacases/cores ))
+
+
+compile $ac &
+compile $wa &
+compile $tc &
+
+wait
 
 #o1=$( gcc $ac -o ac.out 2>&1 | grep "error" )
 #o2=$( gcc $wa -o wa.out 2>&1 | grep "error" )
 
 #if [ "$inputflag" -eq 0 ]; then
- #   o3=$( g++ $tc -o tc.out 2>&1 | grep "error" )
+#   o3=$( g++ $tc -o tc.out 2>&1 | grep "error" )
 #fi
 
 if [[ -n "$o1" || -n "$o2" || -n "$o3" ]]; then
@@ -151,64 +170,82 @@ if [[ -n "$o1" || -n "$o2" || -n "$o3" ]]; then
     exit
 fi
 
-while true; do
-    if [ $inputflag -eq 0 ]; then
-	input="$( run "$( getfilename $tc ).out" "1" )"
-    fi
-
-    ac_output="$( run "$( getfilename $ac ).out" "$input" )"
-
-    if [ $outputflag -eq 1 ]; then
-	timeout $timeout bash -c -- echo "$input" | $( getfilename $wa ).out /dev/stdin > "$outputfile"
-    #else
-	#timeout $timeout bash -c -- 'echo "$input" | ./wa.out /dev/stdin > /dev/null'
-	#timeout $timeout echo "$input" | ./wa.out /dev/stdin > /dev/null
-    fi
-
-    if [ $? -eq 124 ]; then
-	echo "TLE"
-	echo "$input"
-	break
-    fi
-
-    wa_output=$(run "$( getfilename $wa ).out" "$input" )
-
-    if [[ -n $( diff -b <(echo "$ac_output") <(echo "$wa_output")) ]]; then
-	echo
-	echo "Failed"
-	echo "$input"
-	echo "----------------------------------"
-	echo "$ac_output"
-	echo "----------------------------------"
-	echo "$wa_output"
-	echo
-
-	(( wacasescounter=wacasescounter+1 ))
-
-	if [ "$outputflag" -eq 1 ]; then
-	    echo "$input" > $outputfile
-	    echo "----------------------------------" >> $outputfile
-	    echo "$ac_output" >> $outputfile
-	    echo "----------------------------------" >> $outputfile
-	    echo "$wa_output" >> $outputfile
+thread()
+{
+    while true; do
+	if [ $inputflag -eq 0 ]; then
+	    input="$( run $tc "1" )"
 	fi
 
-	if [ "$wacases" -eq "$wacasescounter" ]; then
+	ac_output="$( run $ac "$input" )"
+
+	if [ $outputflag -eq 1 ]; then
+	    timeout $timeout bash -c -- echo "$input" | $( getfilename $wa ).out /dev/stdin > "$outputfile"
+	    #else
+	    #timeout $timeout bash -c -- 'echo "$input" | ./wa.out /dev/stdin > /dev/null'
+	    #timeout $timeout echo "$input" | ./wa.out /dev/stdin > /dev/null
+	fi
+
+	if [ $? -eq 124 ]; then
+	    echo "TLE"
+	    echo "$input"
 	    break
 	fi
 
-    fi
+	wa_output="$(run $wa "$input" )"
 
-    (( i=i+1 ))
+	if [[ -n $( diff -b <(echo "$ac_output") <(echo "$wa_output")) ]]; then
+	    echo
+	    echo "Failed"
+	    echo "$input"
+	    echo "----------------------------------"
+	    echo "$ac_output"
+	    echo "----------------------------------"
+	    echo "$wa_output"
+	    echo
 
-    if [ "$passed" -eq 1 ]; then
-	echo "Test $i Passed"
-    fi
+	    (( wacasescounter=wacasescounter+1 ))
 
-    if [ "$inputflag" -eq 1 ]; then
-	break
-    fi
+	    if [ "$outputflag" -eq 1 ]; then
+		echo "$input" > $outputfile
+		echo "----------------------------------" >> $outputfile
+		echo "$ac_output" >> $outputfile
+		echo "----------------------------------" >> $outputfile
+		echo "$wa_output" >> $outputfile
+	    fi
+
+	    if [ "$wacases" -eq "$wacasescounter" ]; then
+		break
+	    fi
+
+	fi
+
+	(( i=i+1 ))
+
+	if [ "$passed" -eq 1 ]; then
+	    echo "Test $i Passed"
+	fi
+
+	if [ "$inputflag" -eq 1 ]; then
+	    break
+	fi
+
+	if [[ "$i" -eq "$totalcases" ]]; then
+	    break
+	fi
+    done
+}
+
+
+for ((i=1;i<=cores;i++)); do
+    thread &
 done
+
+wait
+
+#export -f thread
+
+#seq 1 10 | parallel -N0 thread
 
 rm $( getfilename $ac ).out
 rm $( getfilename $wa ).out
