@@ -252,6 +252,10 @@ done
 
 wait
 
+(( totaltestcases=totalcases*cores ))
+
+echo "Ran $totaltestcases testcases."
+
 #export -f thread
 
 #seq 1 10 | parallel -N0 thread
