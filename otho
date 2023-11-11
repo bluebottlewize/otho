@@ -4,6 +4,7 @@ Help()
 {
     echo -e "Syntax:	otho.sh [ac file] [wa file] -i [input-file]"
     echo
+    echo -e "-c <N>\t\t\tNumber of testcases to run. Default is 10000"
     echo -e "-i [input-file]\t\tSpecify input file. Will override -t option"
     echo -e "-h\t\t\tPrint this help"
     echo -e "-o [output-file]\tSpecify file to which wa output must be saved"
@@ -11,6 +12,7 @@ Help()
     echo -e "-T <N>\t\t\tTLE time constraint in seconds. Default is 1 second"
     echo -e "-w <N>\t\t\tRun till N testcases give WA. Default is 1"
     echo -e "-p\t\t\tDisplay number of passed testcases"
+    echo -e "-x <N>\t\t\tNumber to threads. Default is 25. Increasing might decrease run time significantly"
 }
 
 compile()
@@ -104,7 +106,14 @@ while getopts ":ht:i:T:o:w:pc:x:" option; do
 	    input=$( cat $inputfile  )
 	    inputflag=1;;
 	t)
-	    tc=$OPTARG;;
+	    tc=$OPTARG
+
+	    if [[ ! -f "$tc" ]]; then
+		echo "Input file $tc does not exist."
+		exit
+	    fi
+
+	    ;;
 	T)
 	    timeout=$OPTARG;;
 	o)
