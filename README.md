@@ -10,23 +10,23 @@
 ## Installation
 
 ```
-$ wget https://github.com/bluebottlewize/otho/raw/main/install.sh
-$ chmod u+x install.sh
-$ ./install.sh
+wget https://github.com/bluebottlewize/otho/raw/main/install.sh
+chmod u+x install.sh
+./install.sh
 ```
 
 ## Usage
 
 ```
-$ otho ac.c wa.c -t testcase.tc
+otho ac.c wa.c -t testcase.tc
 ```
 
 *Note: in order to use a .tc file, the lexer executable must be in the same directory as otho.sh*
 
 ```
-$ otho ac.c wa.c -t testcase.c -T 2
+otho ac.c wa.c -t testcase.c -T 2
 ```
 
 ```
-$ otho ac.c wa.c -i input.txt
+otho ac.c wa.c -i input.txt
 ```
