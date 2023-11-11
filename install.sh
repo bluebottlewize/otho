@@ -6,8 +6,8 @@ fi
 
 cd $HOME/bin
 
-wget https://github.com/bluebottlewize/otho/blob/main/otho -O otho
-wget https://github.com/bluebottlewize/otho/blob/main/lexer -O lexer
+wget https://github.com/bluebottlewize/otho/raw/main/otho -O otho
+wget https://github.com/bluebottlewize/otho/raw/main/lexer -O lexer
 wait
 
 chmod u+x lexer
