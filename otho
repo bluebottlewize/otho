@@ -179,6 +179,10 @@ if [[ -n "$o1" || -n "$o2" || -n "$o3" ]]; then
     exit
 fi
 
+export -f run
+export -f getfilename
+export -f getextension
+
 thread()
 {
     while true; do
@@ -195,13 +199,19 @@ thread()
 	    #timeout $timeout echo "$input" | ./wa.out /dev/stdin > /dev/null
 	fi
 
+	wa_output="$( timeout "$timeout"s bash -c "run $wa "$input"" )"
+	
 	if [ $? -eq 124 ]; then
-	    echo "TLE"
+	    echo
+	    echo "Failed"
 	    echo "$input"
+	    echo "----------------------------------"
+	    echo "$ac_output"
+	    echo "----------------------------------"
+	    echo "TLE"
+	    echo
 	    break
 	fi
-
-	wa_output="$(run $wa "$input" )"
 
 	if [[ -n $( diff -b <(echo "$ac_output") <(echo "$wa_output")) ]]; then
 	    echo
