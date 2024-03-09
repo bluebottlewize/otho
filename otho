@@ -13,6 +13,7 @@ Help()
     echo -e "-w <N>\t\t\tRun till N testcases give WA. Default is 1"
     echo -e "-p\t\t\tDisplay number of passed testcases"
     echo -e "-x <N>\t\t\tNumber to threads. Default is 25. Increasing might decrease run time significantly"
+    echo -e "-g <N>\t\t\tGenerate testcases. Must specify -t flag"
 }
 
 compile()
@@ -28,7 +29,7 @@ compile()
     fi
 
     if [[ $ext  == "c" ]]; then
-	o1=$( gcc $file -o $name.out 2>&1 | grep "error" )
+	o1=$( gcc -lm $file -o $name.out 2>&1 | grep "error" )
     elif [[ $ext == "cpp" ]]; then
 	o1=$( g++ $file -o $name.out 2>&1 | grep "error" )
     fi
@@ -199,7 +200,7 @@ thread()
 	    #timeout $timeout echo "$input" | ./wa.out /dev/stdin > /dev/null
 	fi
 
-	wa_output="$( timeout "$timeout"s bash -c "run $wa "$input"" )"
+	#wa_output="$( timeout "$timeout"s bash -c "run $wa "$input"" )"
 	
 	if [ $? -eq 124 ]; then
 	    echo
@@ -213,6 +214,8 @@ thread()
 	    break
 	fi
 
+	wa_output="$( run $wa "$input" )"
+
 	if [[ -n $( diff -b <(echo "$ac_output") <(echo "$wa_output")) ]]; then
 	    echo
 	    echo "Failed"
@@ -221,6 +224,9 @@ thread()
 	    echo "$ac_output"
 	    echo "----------------------------------"
 	    echo "$wa_output"
+	    if [ -z "$wa_output" ]; then
+		 echo "Segfaulted or Empty Response"
+	    fi
 	    echo
 
 	    (( wacasescounter=wacasescounter+1 ))
@@ -265,10 +271,6 @@ wait
 (( totaltestcases=totalcases*cores ))
 
 echo "Ran $totaltestcases testcases."
-
-#export -f thread
-
-#seq 1 10 | parallel -N0 thread
 
 rm $( getfilename $ac ).out
 rm $( getfilename $wa ).out
