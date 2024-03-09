@@ -9,8 +9,10 @@
 
 ## Installation
 
+Download the zip file from releases section.   
+Extract it and `cd` into the folder.   
+
 ```
-wget https://github.com/bluebottlewize/otho/raw/main/install.sh
 chmod u+x install.sh
 ./install.sh
 ```
